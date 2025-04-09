@@ -1,0 +1,66 @@
+document.getElementById("selectc3").onchange = function () {
+    var selectC3 = document.getElementById("selectc3");
+    var selectC2 = document.getElementById("selectc2");
+    var selectSgr = document.getElementById("selectsgr_code");
+
+    var mapstr2 = selectC3.options[selectC3.selectedIndex].value;
+    var subgroupmapstr2 = selectC2.options[selectC2.selectedIndex].value;
+
+    if (mapstr2 !== "" && subgroupmapstr2 !== "None") {
+        var xhr = new ActiveXObject("Microsoft.XMLHTTP");
+
+        xhr.open("POST", "dbe_cfl_user_accessTransferSave.php", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        var codria = "";
+        var codriaElements = document.getElementsByName("codria");
+        for (var i = 0; i < codriaElements.length; i++) {
+            if (codriaElements[i].checked) {
+                codria = codriaElements[i].value;
+                break;
+            }
+        }
+
+        var postData = "searchType=fetchUsersdetails"
+            + "&usergroup=" + escape(mapstr2)
+            + "&name=" + escape(subgroupmapstr2)
+            + "&codria=" + escape(codria)
+            + "&sub_group_code=" + escape(selectSgr.options[selectSgr.selectedIndex].value);
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var response = eval("(" + xhr.responseText + ")");
+
+                // Clear previous options
+                while (selectC2.options.length > 0) {
+                    selectC2.remove(0);
+                }
+
+                // Add a blank default option
+                var defaultOption = document.createElement("option");
+                defaultOption.value = "";
+                var defaultText = document.createTextNode("");
+                defaultOption.appendChild(defaultText);
+                selectC2.appendChild(defaultOption);
+
+                // Append user group options
+                for (var i = 0; i < response.usergroupsdata.length; i++) {
+                    var usr = response.usergroupsdata[i];
+                    var option = document.createElement("option");
+                    option.value = usr.USERNAME;
+
+                    // Instead of setting text directly, use createTextNode for IE5
+                    var textNode = document.createTextNode(usr.NAME);
+                    option.appendChild(textNode);
+
+                    // Avoid using setAttribute for data-* in IE5
+                    // You can manage username mapping separately if needed
+
+                    selectC2.appendChild(option);
+                }
+            }
+        };
+
+        xhr.send(postData);
+    }
+};
